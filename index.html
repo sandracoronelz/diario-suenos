@@ -624,7 +624,16 @@ Proporciona una interpretación breve (2-3 oraciones) que sea perspicaz, empáti
       body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:400, messages:[{role:'user',content:prompt}] })
     });
     const data = await res.json();
-    const text = data.content?.map(b=>b.text||'').join('') || 'No se pudo interpretar.';
+    let text;
+    if (data.content && data.content.length > 0) {
+      text = data.content.map(b=>b.text||'').join('');
+    } else if (data.error) {
+      text = 'Error API: ' + (data.error.message || JSON.stringify(data.error));
+    } else if (data.type === 'error') {
+      text = 'Error: ' + (data.error?.message || JSON.stringify(data));
+    } else {
+      text = 'Respuesta inesperada: ' + JSON.stringify(data).slice(0,100);
+    }
     const idx  = dreams.findIndex(d=>d.id===dream.id);
     if (idx!==-1) { dreams[idx].interpretation=text; dreams[idx].interpreting=false; save(); }
   } catch(e) {
