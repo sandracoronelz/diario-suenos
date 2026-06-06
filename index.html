@@ -178,7 +178,7 @@ input[type=text]:focus, input[type=date]:focus, textarea:focus, select:focus {
   border-color: var(--border2);
 }
 input::placeholder, textarea::placeholder { color: var(--slate); }
-textarea { min-height: 100px; resize: vertical; line-height: 1.55; }
+textarea { min-height: 160px; resize: none; line-height: 1.6; overflow-y: auto; }
 select option { background: var(--ink2); color: var(--mist); }
 
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
@@ -328,12 +328,13 @@ select option { background: var(--ink2); color: var(--mist); }
 
       <div class="field">
         <label>Título del sueño</label>
-        <input type="text" id="f-title" placeholder="¿Cómo lo llamarías?" />
+        <input type="text" id="f-title" placeholder="¿Cómo lo llamarías?" maxlength="200" />
       </div>
 
       <div class="field">
         <label>Descripción</label>
-        <textarea id="f-desc" placeholder="Describe lo que soñaste con el mayor detalle posible..."></textarea>
+        <textarea id="f-desc" placeholder="Describe lo que soñaste con el mayor detalle posible..." maxlength="50000" oninput="autoResize(this)"></textarea>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--slate);text-align:right;margin-top:4px;" id="char-count">0 caracteres</div>
       </div>
 
       <div class="field-row2">
@@ -665,6 +666,18 @@ function esc(s) {
 
 /* ── Init ── */
 initStars(); initChips(); setDate(); load(); checkKeyBanner(); renderList();
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 500) + 'px';
+  const cc = document.getElementById('char-count');
+  if (cc) cc.textContent = el.value.length.toLocaleString('es-MX') + ' caracteres';
+}
+document.addEventListener('DOMContentLoaded', function() {
+  const desc = document.getElementById('f-desc');
+  if (desc) desc.addEventListener('input', function(){ autoResize(this); });
+});
+
 </script>
 </body>
 </html>
