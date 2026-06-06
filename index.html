@@ -618,9 +618,9 @@ Tipo: ${dream.type}
 Proporciona una interpretación breve (2-3 oraciones) que sea perspicaz, empática y significativa. Habla directamente a la persona. Responde solo en español, sin preámbulos.`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('https://flat-bonus-40b7.sandra-coronel-z.workers.dev', {
       method: 'POST',
-      headers: { 'Content-Type':'application/json', 'x-api-key': key, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+      headers: { 'Content-Type':'application/json', 'x-api-key': key, 'anthropic-version':'2023-06-01' },
       body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:400, messages:[{role:'user',content:prompt}] })
     });
     const data = await res.json();
