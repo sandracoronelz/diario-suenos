@@ -317,7 +317,7 @@ select option { background: var(--ink2); color: var(--mist); }
   <!-- API KEY BANNER - siempre visible si no hay clave -->
   <div class="key-banner" id="key-banner">
     <p>Para interpretación IA, ingresa tu API key de Anthropic:</p>
-    <input type="password" id="api-key-input" placeholder="sk-ant-..." />
+    <input type="password" id="api-key-input" placeholder="Ingresa tu API key aquí" />
     <button onclick="saveKey()">Guardar</button>
     <span class="key-ok" id="key-ok">✓ Clave guardada</span>
   </div>
@@ -602,11 +602,6 @@ async function saveDream() {
 /* ── AI interpretation ── */
 async function interpretDream(dream) {
   const key = getKey();
-  if (!key) {
-    const idx = dreams.findIndex(d=>d.id===dream.id);
-    if (idx!==-1) { dreams[idx].interpretation='Configuración pendiente.'; dreams[idx].interpreting=false; save(); }
-    renderList(); return;
-  }
   const prompt = `Eres un intérprete de sueños experto que combina psicología junguiana, simbolismo universal y perspectiva humanista. El usuario tuvo este sueño:
 
 Título: ${dream.title}
@@ -618,7 +613,7 @@ Tipo: ${dream.type}
 Proporciona una interpretación breve (2-3 oraciones) que sea perspicaz, empática y significativa. Habla directamente a la persona. Responde solo en español, sin preámbulos.`;
 
   try {
-    const res = await fetch('https://flat-bonus-40b7.sandra-coronel-z.workers.dev', {
+    const res = await fetch(\`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=\${GEMINI_KEY}\`, {
       method: 'POST',
       headers: { 'Content-Type':'application/json', 'x-api-key': key, 'anthropic-version':'2023-06-01' },
       body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:400, messages:[{role:'user',content:prompt}] })
@@ -628,17 +623,15 @@ Proporciona una interpretación breve (2-3 oraciones) que sea perspicaz, empáti
     if (data.content && data.content.length > 0) {
       text = data.content.map(b=>b.text||'').join('');
     } else if (data.error) {
-      text = 'Error API: ' + (data.error.message || JSON.stringify(data.error));
-    } else if (data.type === 'error') {
-      text = 'Error: ' + (data.error?.message || JSON.stringify(data));
+      text = 'Error: ' + (data.error.message || JSON.stringify(data.error));
     } else {
-      text = 'Respuesta inesperada: ' + JSON.stringify(data).slice(0,100);
+      text = 'Respuesta: ' + JSON.stringify(data).slice(0,150);
     }
-    const idx  = dreams.findIndex(d=>d.id===dream.id);
+    const idx = dreams.findIndex(d=>d.id===dream.id);
     if (idx!==-1) { dreams[idx].interpretation=text; dreams[idx].interpreting=false; save(); }
   } catch(e) {
     const idx = dreams.findIndex(d=>d.id===dream.id);
-    if (idx!==-1) { dreams[idx].interpretation='Error de conexión. Revisa tu API key y conexión a internet.'; dreams[idx].interpreting=false; save(); }
+    if (idx!==-1) { dreams[idx].interpretation='Error de conexión: ' + e.message; dreams[idx].interpreting=false; save(); }
   }
   renderList();
   if (curId===dream.id) openModal(dream.id);
